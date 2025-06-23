@@ -168,10 +168,6 @@ INSERT INTO `permission` VALUES (28, '业主录入', 'OWNER_ENTRY', '业主录�
 INSERT INTO `permission` VALUES (29, '业主查询', 'OWNER_QUERY', '业主查询功能权限', 2, '2025-06-14 22:54:30', '2025-06-14 22:54:30');
 INSERT INTO `permission` VALUES (30, '业主信息编辑', 'OWNER_EDIT', '业主信息编辑权限', 2, '2025-06-14 22:54:30', '2025-06-14 22:54:30');
 INSERT INTO `permission` VALUES (31, '业主信息删除', 'OWNER_DELETE', '业主信息删除权限', 2, '2025-06-14 22:54:30', '2025-06-14 22:54:30');
-INSERT INTO `permission` VALUES (32, '访客管理', 'VISITOR_MANAGE', '访客管理菜单访问权限', 1, '2025-06-14 22:54:30', '2025-06-14 22:54:30');
-INSERT INTO `permission` VALUES (33, '访客查询', 'VISITOR_QUERY', '访客查询功能权限', 2, '2025-06-14 22:54:30', '2025-06-14 22:54:30');
-INSERT INTO `permission` VALUES (34, '访客同步', 'VISITOR_SYNC', '访客同步功能权限', 2, '2025-06-14 22:54:30', '2025-06-14 22:54:30');
-INSERT INTO `permission` VALUES (35, '访客导出', 'VISITOR_EXPORT', '访客导出功能权限', 2, '2025-06-14 22:54:30', '2025-06-14 22:54:30');
 INSERT INTO `permission` VALUES (36, '报修管理', 'REPAIR_MANAGE', '报修管理菜单访问权限', 1, '2025-06-14 22:54:30', '2025-06-14 22:54:30');
 INSERT INTO `permission` VALUES (37, '报修处理', 'REPAIR_PROCESS', '报修处理功能权限', 2, '2025-06-14 22:54:30', '2025-06-14 22:54:30');
 INSERT INTO `permission` VALUES (38, '报修查询', 'REPAIR_QUERY', '报修查询功能权限', 2, '2025-06-14 22:54:30', '2025-06-14 22:54:30');
@@ -392,7 +388,7 @@ CREATE TABLE `systemmessage`  (
   `ReceiverID` int NOT NULL COMMENT '接收用户ID',
   `Title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '消息标题',
   `Content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '消息内容',
-  `MessageType` tinyint NOT NULL COMMENT '消息类型（1-报修通知，2-缴费提醒，3-访客通知）',
+  `MessageType` tinyint NOT NULL COMMENT '消息类型（1-报修通知，2-缴费提醒）',
   `IsRead` tinyint(1) NULL DEFAULT 0 COMMENT '是否已读',
   `CreateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `UpdateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -444,28 +440,5 @@ INSERT INTO `user` VALUES (10, 'owner1', 'e10adc3949ba59abbe56e057f20f883e', '�
 INSERT INTO `user` VALUES (11, 'owner2', 'e10adc3949ba59abbe56e057f20f883e', '吴美丽', '13900139002', 3, 3, NULL, 1, '2025-06-13 23:42:15', '2025-06-15 13:43:52');
 INSERT INTO `user` VALUES (12, 'owner3', 'e10adc3949ba59abbe56e057f20f883e', '胡图图', '13900139003', 3, 1, NULL, 1, '2025-06-13 23:42:15', '2025-06-15 13:43:42');
 INSERT INTO `user` VALUES (13, 'owner4', 'e10adc3949ba59abbe56e057f20f883e', '刘爷爷', '13900139004', 3, 4, NULL, 1, '2025-06-13 23:42:15', '2025-06-15 13:43:47');
-
--- ----------------------------
--- Table structure for visitorrecord
--- ----------------------------
-DROP TABLE IF EXISTS `visitorrecord`;
-CREATE TABLE `visitorrecord`  (
-  `VisitorID` int NOT NULL AUTO_INCREMENT COMMENT '访客记录ID，主键',
-  `BookerUserID` int NOT NULL COMMENT '预约用户ID',
-  `VisitorName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '访客姓名',
-  `LicensePlate` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '车牌号',
-  `BookTime` datetime NOT NULL COMMENT '预约时间',
-  `SyncedToSecurity` tinyint(1) NULL DEFAULT 0 COMMENT '是否已同步至安保处',
-  `CreateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `UpdateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`VisitorID`) USING BTREE,
-  INDEX `idx_booker_time`(`BookerUserID` ASC, `BookTime` ASC) USING BTREE,
-  INDEX `idx_sync_status`(`SyncedToSecurity` ASC) USING BTREE,
-  CONSTRAINT `visitorrecord_ibfk_1` FOREIGN KEY (`BookerUserID`) REFERENCES `user` (`UserID`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '访客记录表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of visitorrecord
--- ----------------------------
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -41,7 +41,7 @@
 数据统计与导出模块： （所有数据表）
 -------------------------
 7. 全小区数据导出
-导出全小区业主、报修、访客、缴费记录（Excel格式），支持按时间范围筛选
+导出全小区业主、报修、缴费记录（Excel格式），支持按时间范围筛选
 -------------------------
 ————————————————————————————————————————————————————————
 二、物业管家角色功能清单
@@ -54,21 +54,12 @@
 修改本楼栋业主资料，按姓名 / 楼栋筛选业主列表，查看业主关联的报修 / 缴费记录
 --------------------------
 
-访客管理模块： （VisitorRecord 表、User 表）
---------------------------
-3. 访客报备同步
-查看本楼栋业主的访客报备记录，点击 “同步安保” 按钮（更新SyncedToSecurity=TRUE）
---------------------------
-4. 当日报备清单导出
-导出本楼栋当日报备清单（含访客姓名、车牌、业主信息），供安保处线下核对
---------------------------
-
 报修管理模块： （RepairRequest 表、User 表）
 --------------------------
-5. 本楼栋报修处理
+3. 本楼栋报修处理
 查看待处理报修单，更新状态（处理中 / 已完成），记录处理人（HandlerID），填写完成时间（CompleteTime）
 --------------------------
-6. 报修记录查询
+4. 报修记录查询
 按状态 / 时间查询本楼栋报修历史，导出报修明细
 --------------------------
 
@@ -77,10 +68,10 @@
 
 车位管理模块： （ParkingSpot 表、User 表）
 --------------------------
-9. 本楼栋车位录入
+5. 本楼栋车位录入
 录入车位编号、位置，分配给本楼栋业主（OwnerUserID关联），标记状态（已占用/空闲）
 --------------------------
-10. 车位状态更新
+6. 车位状态更新
 修改车位车牌号（LicensePlate），更新使用状态（UsageStatus）
 --------------------------
 ————————————————————————————————————————————————————————
@@ -100,24 +91,18 @@
 查看个人报修记录及状态更新，接收报修通知（提交/处理/完成）
 --------------------------
 
-访客管理模块： （VisitorRecord 表、User 表）
---------------------------
-4. 访客在线报备
-填写访客姓名、车牌号（LicensePlate），提交报备（记录BookTime），查看报备历史
---------------------------
-
 缴费管理模块： （PaymentRecord 表、User 表）
 --------------------------
-5. 账单查看与支付
+4. 账单查看与支付
 查看个人物业费账单（BillingCycle），在线支付费用，记录支付时间（PaymentTime）和方式（PaymentMethod）
 --------------------------
-6. 缴费记录查询
+5. 缴费记录查询
 查看历史缴费记录，下载缴费凭证
 --------------------------
 
 车位管理模块： （ParkingSpot 表、User 表）
 --------------------------
-7. 个人车位查看
+6. 个人车位查看
 查看已分配车位信息（编号、位置），修改车牌号（LicensePlate）
 --------------------------
 ————————————————————————————————————————————————————————
@@ -127,9 +112,8 @@
 2. Role表：存储角色信息，包含角色ID、角色名称、角色描述等字段
 3. Building表：存储楼栋信息，包含楼栋ID、楼栋名称、位置、管家ID等字段
 4. RepairRequest表：存储报修信息，包含报修ID、提交用户ID、处理人ID、状态、完成时间等字段
-5. VisitorRecord表：存储访客信息，包含访客ID、预约用户ID、访客姓名、车牌、报备时间、同步状态等字段
-6. PaymentRecord表：存储缴费信息，包含缴费ID、业主ID、金额、缴费状态、缴费时间等字段
-7. ParkingSpot表：存储车位信息，包含车位ID、业主ID、车位编号、位置、使用状态、车牌号等字段
+5. PaymentRecord表：存储缴费信息，包含缴费ID、业主ID、金额、缴费状态、缴费时间等字段
+6. ParkingSpot表：存储车位信息，包含车位ID、业主ID、车位编号、位置、使用状态、车牌号等字段
 --------------------------
 五、开发注意事项
 --------------------------
@@ -202,20 +186,7 @@ CREATE TABLE RepairRequest (
     FOREIGN KEY (HandlerID) REFERENCES User(UserID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='报修表';
 
--- 6. 创建访客记录表
-CREATE TABLE VisitorRecord (
-    VisitorID INT PRIMARY KEY AUTO_INCREMENT COMMENT '访客记录ID，主键',
-    BookerUserID INT NOT NULL COMMENT '预约用户ID',
-    VisitorName VARCHAR(50) NOT NULL COMMENT '访客姓名',
-    LicensePlate VARCHAR(20) COMMENT '车牌号',
-    BookTime DATETIME NOT NULL COMMENT '预约时间',
-    SyncedToSecurity BOOLEAN DEFAULT FALSE COMMENT '是否已同步至安保处',
-    CreateTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    UpdateTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    FOREIGN KEY (BookerUserID) REFERENCES User(UserID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='访客记录表';
-
--- 7. 创建缴费记录表
+-- 6. 创建缴费记录表
 CREATE TABLE PaymentRecord (
     PaymentID INT PRIMARY KEY AUTO_INCREMENT COMMENT '缴费记录ID，主键',
     OwnerUserID INT NOT NULL COMMENT '业主ID',
@@ -229,7 +200,7 @@ CREATE TABLE PaymentRecord (
     FOREIGN KEY (OwnerUserID) REFERENCES User(UserID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='缴费记录表';
 
--- 8. 创建车位表
+-- 7. 创建车位表
 CREATE TABLE ParkingSpot (
     ParkingID INT PRIMARY KEY AUTO_INCREMENT COMMENT '车位ID，主键',
     BuildingID INT NOT NULL COMMENT '楼栋ID',
@@ -244,13 +215,13 @@ CREATE TABLE ParkingSpot (
     FOREIGN KEY (OwnerUserID) REFERENCES User(UserID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车位表';
 
--- 9. 创建系统消息表
+-- 8. 创建系统消息表
 CREATE TABLE SystemMessage (
     MessageID INT PRIMARY KEY AUTO_INCREMENT COMMENT '消息ID，主键',
     ReceiverID INT NOT NULL COMMENT '接收用户ID',
     Title VARCHAR(100) NOT NULL COMMENT '消息标题',
     Content TEXT NOT NULL COMMENT '消息内容',
-    MessageType TINYINT NOT NULL COMMENT '消息类型（1-报修通知，2-缴费提醒，3-访客通知）',
+    MessageType TINYINT NOT NULL COMMENT '消息类型（1-报修通知，2-缴费提醒）',
     IsRead BOOLEAN DEFAULT FALSE COMMENT '是否已读',
     CreateTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     UpdateTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

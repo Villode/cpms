@@ -44,7 +44,6 @@ public class RepairQueryPanel extends JPanel {
     private JComboBox<String> typeFilterComboBox;
     private JTextField searchField;
     private JButton searchButton;
-    private JButton exportButton;
     private JLabel totalCountLabel;
     private JLabel pendingCountLabel;
     private JLabel processingCountLabel;
@@ -149,17 +148,6 @@ public class RepairQueryPanel extends JPanel {
             }
         });
         
-        // 导出按钮
-        exportButton = new JButton("导出");
-        exportButton.setFont(new Font(config.getProperty("ui.font.name", "微软雅黑"), Font.PLAIN, 
-                config.getIntProperty("ui.font.size.normal", 14)));
-        exportButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                exportRepairs();
-            }
-        });
-        
         panel.add(statusLabel);
         panel.add(statusFilterComboBox);
         panel.add(typeLabel);
@@ -167,7 +155,6 @@ public class RepairQueryPanel extends JPanel {
         panel.add(searchLabel);
         panel.add(searchField);
         panel.add(searchButton);
-        panel.add(exportButton);
         
         return panel;
     }
@@ -442,31 +429,6 @@ public class RepairQueryPanel extends JPanel {
         processingCountLabel.setText(String.valueOf(processing));
         completedCountLabel.setText(String.valueOf(completed));
         canceledCountLabel.setText(String.valueOf(canceled));
-    }
-    
-    /**
-     * 导出报修数据
-     */
-    private void exportRepairs() {
-        if (repairList == null || repairList.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "没有数据可导出！", "提示", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        
-        // 选择保存路径
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("导出报修数据");
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        
-        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            try {
-                // TODO: 实现导出功能
-                JOptionPane.showMessageDialog(this, "导出功能尚未实现", "提示", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "导出失败：" + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
-            }
-        }
     }
     
     /**

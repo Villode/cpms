@@ -99,12 +99,6 @@ public class AdminPermissionInitializer {
         permissions.add(new Permission(4004, "业主信息编辑", "OWNER_EDIT", "业主信息编辑权限", 2));
         permissions.add(new Permission(4005, "业主信息删除", "OWNER_DELETE", "业主信息删除权限", 2));
         
-        // 访客管理权限
-        permissions.add(new Permission(5001, "访客管理", "VISITOR_MANAGE", "访客管理菜单访问权限", 1));
-
-        permissions.add(new Permission(5003, "访客同步", "VISITOR_SYNC", "访客同步功能权限", 2));
-        permissions.add(new Permission(5004, "访客导出", "VISITOR_EXPORT", "访客导出功能权限", 2));
-        
         // 报修管理权限
         permissions.add(new Permission(6001, "报修管理", "REPAIR_MANAGE", "报修管理菜单访问权限", 1));
         permissions.add(new Permission(6002, "报修处理", "REPAIR_PROCESS", "报修处理功能权限", 2));
