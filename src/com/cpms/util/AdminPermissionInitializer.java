@@ -118,11 +118,7 @@ public class AdminPermissionInitializer {
         permissions.add(new Permission(8004, "车牌号修改", "LICENSE_PLATE_EDIT", "车牌号修改权限（仅管家和管理员）", 2));
         permissions.add(new Permission(8005, "车位解除分配", "PARKING_UNASSIGN", "车位解除分配权限", 2));
         
-        // 公告管理权限（暂未实现，注释掉）
-        // permissions.add(new Permission(9001, "公告管理", "ANNOUNCEMENT_MANAGE", "公告管理功能权限", 1));
-        // permissions.add(new Permission(9002, "公告发布", "ANNOUNCEMENT_PUBLISH", "公告发布权限", 2));
-        // permissions.add(new Permission(9003, "公告编辑", "ANNOUNCEMENT_EDIT", "公告编辑权限", 2));
-        // permissions.add(new Permission(9004, "公告删除", "ANNOUNCEMENT_DELETE", "公告删除权限", 2));
+
         
         // 业主个人功能权限
         permissions.add(new Permission(9001, "提交报修", "REPAIR_SUBMIT", "业主提交报修权限", 2));

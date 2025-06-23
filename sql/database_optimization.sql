@@ -52,13 +52,7 @@ ALTER TABLE `rolepermission` ADD INDEX `idx_role_permission` (`RoleID`, `Permiss
 ALTER TABLE `parkingspot` ADD INDEX `idx_building_status` (`BuildingID`, `Status`);
 ALTER TABLE `parkingspot` ADD INDEX `idx_owner_user` (`OwnerUserID`);
 
--- 访客记录表索引优化
-ALTER TABLE `visitorrecord` ADD INDEX `idx_booker_time` (`BookerUserID`, `BookTime`);
-ALTER TABLE `visitorrecord` ADD INDEX `idx_sync_status` (`SyncedToSecurity`);
 
--- 系统消息表索引优化
-ALTER TABLE `systemmessage` ADD INDEX `idx_receiver_read` (`ReceiverID`, `IsRead`);
-ALTER TABLE `systemmessage` ADD INDEX `idx_type_time` (`MessageType`, `CreateTime`);
 
 SELECT '复合索引添加完成' AS status;
 
@@ -90,11 +84,7 @@ ALTER TABLE `payment_record` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_un
 -- 报修表（已经是utf8mb4_unicode_ci）
 -- ALTER TABLE `repair` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- 访客记录表
-ALTER TABLE `visitorrecord` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- 系统消息表
-ALTER TABLE `systemmessage` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 SELECT '字符编码统一完成' AS status;
 

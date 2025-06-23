@@ -379,28 +379,7 @@ INSERT INTO `rolepermission` VALUES (276, 3, 55, '2025-06-14 23:13:24');
 INSERT INTO `rolepermission` VALUES (277, 3, 56, '2025-06-14 23:13:24');
 INSERT INTO `rolepermission` VALUES (278, 3, 57, '2025-06-14 23:13:24');
 
--- ----------------------------
--- Table structure for systemmessage
--- ----------------------------
-DROP TABLE IF EXISTS `systemmessage`;
-CREATE TABLE `systemmessage`  (
-  `MessageID` int NOT NULL AUTO_INCREMENT COMMENT '消息ID，主键',
-  `ReceiverID` int NOT NULL COMMENT '接收用户ID',
-  `Title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '消息标题',
-  `Content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '消息内容',
-  `MessageType` tinyint NOT NULL COMMENT '消息类型（1-报修通知，2-缴费提醒）',
-  `IsRead` tinyint(1) NULL DEFAULT 0 COMMENT '是否已读',
-  `CreateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `UpdateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`MessageID`) USING BTREE,
-  INDEX `idx_receiver_read`(`ReceiverID` ASC, `IsRead` ASC) USING BTREE,
-  INDEX `idx_type_time`(`MessageType` ASC, `CreateTime` ASC) USING BTREE,
-  CONSTRAINT `systemmessage_ibfk_1` FOREIGN KEY (`ReceiverID`) REFERENCES `user` (`UserID`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '系统消息表' ROW_FORMAT = Dynamic;
 
--- ----------------------------
--- Records of systemmessage
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for user
