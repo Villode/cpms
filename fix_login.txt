@@ -1,0 +1,5 @@
+现在已经修复了登录问题，主要做了以下更改：
+1. 删除了重复的LoginController类，统一使用common包中的LoginController
+2. 更新了LoginFrame类，引用正确的LoginController
+3. 修改了LoginController类的密码验证逻辑，增加了对明文密码的支持
+4. 在Main类中添加了系统初始化代码，确保管理员账号存在
