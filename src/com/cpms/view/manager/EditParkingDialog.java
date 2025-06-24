@@ -4,6 +4,7 @@ import com.cpms.model.dao.BuildingDAO;
 import com.cpms.model.dao.ParkingSpotDAO;
 import com.cpms.model.entity.Building;
 import com.cpms.model.entity.ParkingSpot;
+import com.cpms.model.entity.User;
 import com.cpms.util.config.ConfigManager;
 
 import javax.swing.*;
@@ -12,6 +13,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,6 +23,9 @@ import java.util.List;
 public class EditParkingDialog extends JDialog {
     // 配置管理器
     private final ConfigManager config = ConfigManager.getInstance();
+    
+    // 当前用户
+    private User currentUser;
     
     // 界面组件
     private JComboBox<Building> buildingComboBox;
@@ -44,10 +49,12 @@ public class EditParkingDialog extends JDialog {
      * 构造方法
      * @param parent 父窗口
      * @param parkingSpot 要编辑的车位
+     * @param user 当前用户
      */
-    public EditParkingDialog(Window parent, ParkingSpot parkingSpot) {
+    public EditParkingDialog(Window parent, ParkingSpot parkingSpot, User user) {
         super(parent, "编辑车位", ModalityType.APPLICATION_MODAL);
         this.parkingSpot = parkingSpot;
+        this.currentUser = user;
         
         // 初始化界面
         initComponents();
@@ -62,6 +69,15 @@ public class EditParkingDialog extends JDialog {
         setSize(400, 400);
         setLocationRelativeTo(parent);
         setResizable(false);
+    }
+    
+    /**
+     * 向下兼容的构造方法
+     * @param parent 父窗口
+     * @param parkingSpot 要编辑的车位
+     */
+    public EditParkingDialog(Window parent, ParkingSpot parkingSpot) {
+        this(parent, parkingSpot, null);
     }
     
     /**
@@ -262,14 +278,50 @@ public class EditParkingDialog extends JDialog {
     private void loadBuildingData() {
         try {
             BuildingDAO buildingDAO = new BuildingDAO();
-            buildingList = buildingDAO.findAll();
+            
+            // 根据用户角色和权限加载楼栋
+            if (currentUser != null && currentUser.getRoleID() == 2) { // 管家角色
+                // 获取管家负责的楼栋ID
+                Integer managedBuildingID = currentUser.getManagedBuildingID();
+                
+                // 如果managedBuildingID为空或0，尝试从数据库获取
+                if (managedBuildingID == null || managedBuildingID <= 0) {
+                    List<Building> managerBuildings = buildingDAO.findByManagerID(currentUser.getUserID());
+                    if (managerBuildings != null && !managerBuildings.isEmpty()) {
+                        buildingList = managerBuildings;
+                    } else {
+                        buildingList = new ArrayList<>(); // 如果没有分配楼栋，创建空列表
+                    }
+                } else {
+                    // 只加载管家负责的楼栋
+                    Building managedBuilding = buildingDAO.findByID(managedBuildingID);
+                    if (managedBuilding != null) {
+                        buildingList = new ArrayList<>();
+                        buildingList.add(managedBuilding);
+                    } else {
+                        buildingList = new ArrayList<>(); // 如果找不到楼栋，创建空列表
+                    }
+                }
+            } else {
+                // 非管家角色或未传入用户，加载所有楼栋
+                buildingList = buildingDAO.findAll();
+            }
             
             buildingComboBox.removeAllItems();
             
-            if (buildingList != null) {
+            if (buildingList != null && !buildingList.isEmpty()) {
                 for (Building building : buildingList) {
                     buildingComboBox.addItem(building);
                 }
+                
+                // 如果是管家且只有一个楼栋，禁用选择框
+                if (currentUser != null && currentUser.getRoleID() == 2 && buildingList.size() == 1) {
+                    buildingComboBox.setEnabled(false);
+                }
+            } else if (currentUser != null && currentUser.getRoleID() == 2) {
+                // 管家没有分配楼栋的情况
+                JOptionPane.showMessageDialog(this, "您没有被分配管理任何楼栋，无法编辑车位", "提示", JOptionPane.WARNING_MESSAGE);
+                dispose(); // 关闭对话框
             }
             
             buildingDAO.close();

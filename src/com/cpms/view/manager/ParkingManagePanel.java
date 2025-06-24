@@ -16,6 +16,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -63,6 +64,9 @@ public class ParkingManagePanel extends JPanel {
         
         // 初始化界面组件
         initComponents();
+        
+        // 加载楼栋数据
+        loadBuildingData();
         
         // 加载数据
         loadData();
@@ -317,26 +321,43 @@ public class ParkingManagePanel extends JPanel {
      * 加载数据
      */
     private void loadData() {
-        // 加载楼栋数据
-        loadBuildingData();
-        
-        // 清空表格
-        tableModel.setRowCount(0);
-        
         try {
             ParkingSpotDAO parkingSpotDAO = new ParkingSpotDAO();
+            
+            // 清空表格
+            tableModel.setRowCount(0);
             
             // 获取筛选条件
             int selectedBuildingIndex = buildingFilterComboBox.getSelectedIndex();
             int selectedStatusIndex = statusFilterComboBox.getSelectedIndex();
             
-            if (selectedBuildingIndex > 0 && buildingList != null && selectedBuildingIndex <= buildingList.size()) {
-                // 按楼栋筛选
-                Building selectedBuilding = buildingList.get(selectedBuildingIndex - 1);
-                parkingList = parkingSpotDAO.findByBuildingID(selectedBuilding.getBuildingID());
+            // 对于管家角色特殊处理
+            if (currentUser.getRoleID() == 2) {
+                // 管家只能看到自己负责的楼栋
+                Integer managedBuildingID = currentUser.getManagedBuildingID();
+                
+                // 如果managedBuildingID为空或0，尝试从buildingList获取
+                if ((managedBuildingID == null || managedBuildingID <= 0) && buildingList != null && !buildingList.isEmpty()) {
+                    managedBuildingID = buildingList.get(0).getBuildingID();
+                }
+                
+                if (managedBuildingID != null && managedBuildingID > 0) {
+                    // 按管家负责的楼栋筛选
+                    parkingList = parkingSpotDAO.findByBuildingID(managedBuildingID);
+                } else {
+                    // 如果仍然没有楼栋ID，则获取所有车位（虽然这种情况不应该发生）
+                    parkingList = parkingSpotDAO.findAll();
+                }
             } else {
-                // 获取所有车位
-                parkingList = parkingSpotDAO.findAll();
+                // 非管家角色的正常处理
+                if (selectedBuildingIndex > 0 && buildingList != null && selectedBuildingIndex <= buildingList.size()) {
+                    // 按楼栋筛选
+                    Building selectedBuilding = buildingList.get(selectedBuildingIndex - 1);
+                    parkingList = parkingSpotDAO.findByBuildingID(selectedBuilding.getBuildingID());
+                } else {
+                    // 获取所有车位
+                    parkingList = parkingSpotDAO.findAll();
+                }
             }
             
             if (parkingList != null) {
@@ -380,21 +401,92 @@ public class ParkingManagePanel extends JPanel {
     private void loadBuildingData() {
         try {
             BuildingDAO buildingDAO = new BuildingDAO();
-            buildingList = buildingDAO.findAll();
             
-            buildingFilterComboBox.removeAllItems();
-            buildingFilterComboBox.addItem("全部楼栋");
-            
-            if (buildingList != null) {
-                for (Building building : buildingList) {
-                    buildingFilterComboBox.addItem(building.getBuildingName());
+            // 检查是否为管家角色，并且有指定的管理楼栋
+            if (currentUser.getRoleID() == 2) {
+                // 管家角色，只显示负责的楼栋
+                Integer managedBuildingID = currentUser.getManagedBuildingID();
+                
+                // 如果managedBuildingID为空或0，尝试从数据库获取
+                if (managedBuildingID == null || managedBuildingID <= 0) {
+                    managedBuildingID = getManagerBuildingIDFromDB(currentUser.getUserID());
+                    if (managedBuildingID != null && managedBuildingID > 0) {
+                        // 更新当前用户的managedBuildingID
+                        currentUser.setManagedBuildingID(managedBuildingID);
+                    }
+                }
+                
+                // 如果管家有指定负责的楼栋
+                if (managedBuildingID != null && managedBuildingID > 0) {
+                    // 只加载管家负责的楼栋
+                    Building managedBuilding = buildingDAO.findByID(managedBuildingID);
+                    if (managedBuilding != null) {
+                        buildingList = new ArrayList<>();
+                        buildingList.add(managedBuilding);
+                    } else {
+                        buildingList = buildingDAO.findAll(); // 备用方案：如果找不到管家楼栋，加载所有楼栋
+                    }
+                } else {
+                    // 如果管家没有指定楼栋，但可能通过ManagerID关联
+                    buildingList = buildingDAO.findByManagerID(currentUser.getUserID());
+                    if (buildingList == null || buildingList.isEmpty()) {
+                        buildingList = buildingDAO.findAll(); // 备用方案：如果无法通过ManagerID找到楼栋
+                    }
+                }
+                
+                buildingFilterComboBox.removeAllItems();
+                
+                // 对于管家，仅添加其管理的楼栋，且不显示"全部楼栋"选项
+                if (buildingList != null && !buildingList.isEmpty()) {
+                    for (Building building : buildingList) {
+                        buildingFilterComboBox.addItem(building.getBuildingName());
+                    }
+                    // 默认选中第一个楼栋
+                    buildingFilterComboBox.setSelectedIndex(0);
+                    buildingFilterComboBox.setEnabled(false); // 禁止切换
+                } else {
+                    buildingFilterComboBox.addItem("未分配楼栋");
+                    buildingFilterComboBox.setEnabled(false);
+                }
+            } else {
+                // 非管家角色（如管理员），显示所有楼栋
+                buildingList = buildingDAO.findAll();
+                
+                buildingFilterComboBox.removeAllItems();
+                buildingFilterComboBox.addItem("全部楼栋");
+                
+                if (buildingList != null) {
+                    for (Building building : buildingList) {
+                        buildingFilterComboBox.addItem(building.getBuildingName());
+                    }
                 }
             }
             
             buildingDAO.close();
         } catch (SQLException e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "加载楼栋数据失败: " + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
         }
+    }
+    
+    /**
+     * 从数据库获取管家负责的楼栋ID
+     * @param managerID 管家ID
+     * @return 楼栋ID
+     */
+    private Integer getManagerBuildingIDFromDB(int managerID) {
+        try {
+            BuildingDAO buildingDAO = new BuildingDAO();
+            List<Building> managerBuildings = buildingDAO.findByManagerID(managerID);
+            buildingDAO.close();
+            
+            if (managerBuildings != null && !managerBuildings.isEmpty()) {
+                return managerBuildings.get(0).getBuildingID();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
     
     /**
@@ -427,7 +519,7 @@ public class ParkingManagePanel extends JPanel {
      * 显示新增车位对话框
      */
     private void showAddParkingDialog() {
-        AddParkingDialog dialog = new AddParkingDialog(SwingUtilities.getWindowAncestor(this));
+        AddParkingDialog dialog = new AddParkingDialog(SwingUtilities.getWindowAncestor(this), currentUser);
         dialog.setVisible(true);
         
         if (dialog.isConfirmed()) {
@@ -451,7 +543,7 @@ public class ParkingManagePanel extends JPanel {
         }
         
         ParkingSpot selectedParking = parkingList.get(selectedRow);
-        EditParkingDialog dialog = new EditParkingDialog(SwingUtilities.getWindowAncestor(this), selectedParking);
+        EditParkingDialog dialog = new EditParkingDialog(SwingUtilities.getWindowAncestor(this), selectedParking, currentUser);
         dialog.setVisible(true);
         
         if (dialog.isConfirmed()) {
@@ -475,7 +567,7 @@ public class ParkingManagePanel extends JPanel {
         }
         
         ParkingSpot selectedParking = parkingList.get(selectedRow);
-        AssignParkingDialog dialog = new AssignParkingDialog(SwingUtilities.getWindowAncestor(this), selectedParking);
+        AssignParkingDialog dialog = new AssignParkingDialog(SwingUtilities.getWindowAncestor(this), selectedParking, currentUser);
         dialog.setVisible(true);
         
         if (dialog.isConfirmed()) {

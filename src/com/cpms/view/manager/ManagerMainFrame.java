@@ -2,12 +2,18 @@ package com.cpms.view.manager;
 
 import com.cpms.model.entity.User;
 import com.cpms.util.PermissionValidator;
+import com.cpms.util.db.DatabaseConnection;
+import com.cpms.util.db.DatabaseUtil;
 import com.cpms.view.manager.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * 物业管家主界面
@@ -28,6 +34,26 @@ public class ManagerMainFrame extends JFrame {
     public ManagerMainFrame(User user) {
         this.currentUser = user;
         
+        // 调试输出管家楼栋信息
+        System.out.println("Manager ID: " + user.getUserID());
+        System.out.println("Manager Role ID: " + user.getRoleID());
+        System.out.println("ManagedBuildingID: " + user.getManagedBuildingID());
+        
+        // 如果是管家角色但没有指定楼栋ID，从数据库获取
+        if (user.getRoleID() == 2 && (user.getManagedBuildingID() == null || user.getManagedBuildingID() <= 0)) {
+            Integer buildingID = getManagerBuildingIDFromDB(user.getUserID());
+            if (buildingID != null && buildingID > 0) {
+                user.setManagedBuildingID(buildingID);
+                System.out.println("从数据库获取到管家楼栋ID: " + buildingID);
+            }
+        }
+        
+        if (user.getManagedBuildingID() != null && user.getManagedBuildingID() > 0) {
+            System.out.println("楼栋ID存在: " + user.getManagedBuildingID());
+        } else {
+            System.out.println("楼栋ID不存在或为零");
+        }
+        
         // 设置窗口属性
         setTitle("小区物业管理系统 - 物业管家");
         setSize(1024, 768);
@@ -39,6 +65,49 @@ public class ManagerMainFrame extends JFrame {
         
         // 显示界面
         setVisible(true);
+    }
+    
+    /**
+     * 从数据库获取管家负责的楼栋ID
+     * @param managerID 管家ID
+     * @return 楼栋ID
+     */
+    private Integer getManagerBuildingIDFromDB(int managerID) {
+        DatabaseConnection dbc = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            dbc = new DatabaseConnection();
+            conn = dbc.getConnection();
+            
+            // 查询管家负责的楼栋
+            String sql = "SELECT BuildingID FROM building WHERE ManagerID = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, managerID);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("BuildingID");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DatabaseUtil.closeResources(rs, pstmt);
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (dbc != null) {
+                dbc.close();
+            }
+        }
+        
+        return null;
     }
     
     /**
@@ -248,13 +317,18 @@ public class ManagerMainFrame extends JFrame {
      * 显示车位管理界面
      */
     private void showParkingManage() {
-        // 创建车位管理面板
-        ParkingManagePanel parkingPanel = new ParkingManagePanel(currentUser);
-        
-        // 清空内容面板并添加新面板
+        ParkingManagePanel parkingManagePanel = new ParkingManagePanel(currentUser);
         contentPanel.removeAll();
-        contentPanel.add(parkingPanel, BorderLayout.CENTER);
+        contentPanel.add(parkingManagePanel, BorderLayout.CENTER);
         contentPanel.revalidate();
         contentPanel.repaint();
+    }
+    
+    /**
+     * 获取当前登录用户
+     * @return 当前用户对象
+     */
+    public User getCurrentUser() {
+        return currentUser;
     }
 }

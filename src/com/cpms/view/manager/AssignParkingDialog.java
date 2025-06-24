@@ -33,6 +33,7 @@ public class AssignParkingDialog extends JDialog {
     private ParkingSpot parkingSpot;
     private List<User> ownerList;
     private boolean confirmed = false;
+    private User currentUser; // 当前登录用户
     
     // 颜色方案
     private final Color PRIMARY_COLOR = Color.decode(config.getProperty("ui.color.primary", "#1E88E5"));
@@ -43,10 +44,12 @@ public class AssignParkingDialog extends JDialog {
      * 构造方法
      * @param parent 父窗口
      * @param parkingSpot 要分配的车位
+     * @param currentUser 当前登录用户
      */
-    public AssignParkingDialog(Window parent, ParkingSpot parkingSpot) {
+    public AssignParkingDialog(Window parent, ParkingSpot parkingSpot, User currentUser) {
         super(parent, "分配车位", ModalityType.APPLICATION_MODAL);
         this.parkingSpot = parkingSpot;
+        this.currentUser = currentUser;
         
         // 初始化界面
         initComponents();
@@ -252,7 +255,15 @@ public class AssignParkingDialog extends JDialog {
      */
     private void loadOwnerData() {
         OwnerController ownerController = new OwnerController();
-        ownerList = ownerController.getAllOwners();
+        
+        // 根据用户角色加载不同的业主列表
+        if (currentUser != null && currentUser.getRoleID() == 2) { // 管家角色
+            // 只加载管家负责楼栋的业主
+            ownerList = ownerController.getOwnersByManagerID(currentUser.getUserID());
+        } else {
+            // 其他角色加载所有业主
+            ownerList = ownerController.getAllOwners();
+        }
         
         ownerComboBox.removeAllItems();
         ownerComboBox.addItem(null); // 添加空选项
